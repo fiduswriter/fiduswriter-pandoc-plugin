@@ -18,6 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
+        if: github.server_url == 'https://github.com'
         with:
           python-version: "3.14"
       - name: Install dependencies
@@ -30,8 +31,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Chrome (Forgejo runners)
+        if: github.server_url != 'https://github.com'
+        run: |
+            apt-get update
+            apt-get install -y wget gnupg ca-certificates
+            wget -q -O /tmp/google-chrome.gpg https://dl.google.com/linux/linux_signing_key.pub
+            gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg /tmp/google-chrome.gpg
+            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+            apt-get update
+            apt-get install -y google-chrome-stable
       - name: Set up Python
         uses: actions/setup-python@v6
+        if: github.server_url == 'https://github.com'
         with:
           python-version: "3.14"
       - uses: actions/checkout@v6
@@ -54,7 +66,7 @@ jobs:
           mv ../ci/.coveragerc ./
           coverage run --concurrency=multiprocessing,thread $(which fiduswriter) setup --no-static
       - name: Run test pandoc
-        uses: nick-invision/retry@v4
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 15
           max_attempts: 3
@@ -69,6 +81,7 @@ jobs:
           name: failure-artifacts
           path: ${{ github.workspace }}/fiduswriter/screenshots/
       - name: Coveralls
+        if: github.server_url == 'https://github.com'
         run: |
           cd fiduswriter
           coverage combine
