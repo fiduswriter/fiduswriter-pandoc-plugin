@@ -74,7 +74,7 @@ jobs:
             cd fiduswriter
             coverage run --concurrency=multiprocessing,thread $(which fiduswriter) test pandoc
       - name: Upload failed test screenshots
-        if: ${{ failure() }}
+        if: ${{ github.server_url == 'https://github.com' && failure() }}
         uses: actions/upload-artifact@v7
         with:
           name: failure-artifacts
