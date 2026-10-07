@@ -412,7 +412,13 @@ class PandocTest(SeleniumHelper, ChannelsLiveServerTestCase):
         # matches that item instead of the plugin's "Markdown" submenu under
         # "Other formats" and closes the menu. Scope the click to the
         # innermost open pulldown (the "Other formats" submenu).
-        self.retry_click(
+        # The nested Markdown submenu opens near the bottom of the window
+        # (the core export menu grew a top-level Markdown item in
+        # @fiduswriter/editor 0.2.39 and Typst in 0.2.40), so this item, the
+        # items inside it and the Richtext item below sit at or below the
+        # fold of the fixed-height editor layout. Selenium cannot scroll to
+        # them there, so click via JavaScript instead of with retry_click.
+        self.js_click(
             self.driver,
             (
                 By.XPATH,
@@ -420,8 +426,7 @@ class PandocTest(SeleniumHelper, ChannelsLiveServerTestCase):
                 '//*[normalize-space()="Markdown"]',
             ),
         )
-
-        self.retry_click(
+        self.js_click(
             self.driver,
             (By.XPATH, '//*[normalize-space()="Pandoc Markdown"]'),
         )
@@ -438,9 +443,10 @@ class PandocTest(SeleniumHelper, ChannelsLiveServerTestCase):
         self.driver.find_element(
             By.XPATH, '//*[normalize-space()="Other formats"]'
         ).click()
-        self.driver.find_element(
-            By.XPATH, '//*[normalize-space()="Richtext"]'
-        ).click()
+        self.js_click(
+            self.driver,
+            (By.XPATH, '//*[normalize-space()="Richtext"]'),
+        )
         path = os.path.join(self.download_dir, "title.rtf")
         self.wait_until_file_exists(path, self.wait_time)
         assert os.path.isfile(path)
