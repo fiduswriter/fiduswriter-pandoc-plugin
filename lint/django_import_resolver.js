@@ -211,74 +211,6 @@ function getFidusWriterPath() {
     }
 }
 
-function getBooksPath() {
-    try {
-        // Try to find fiduswriter-books via Python import
-        const booksPathOutput = execSync(
-            'python -c "import fiduswriter; import json; print(json.dumps([str(p) for p in fiduswriter.__path__]))"',
-            {stdio: ["pipe", "pipe", "ignore"]}
-        )
-            .toString()
-            .trim()
-
-        const paths = JSON.parse(booksPathOutput)
-        const pluginDir = path.resolve(__dirname, "..")
-
-        for (const testPath of paths) {
-            if (
-                typeof testPath !== "string" ||
-                testPath.startsWith("__editable__")
-            ) {
-                continue
-            }
-            const resolvedPath = fs.realpathSync(testPath)
-
-            // Skip the current plugin directory
-            if (
-                resolvedPath === pluginDir ||
-                resolvedPath.startsWith(pluginDir)
-            ) {
-                continue
-            }
-
-            // Skip fiduswriter core (has document or bibliography app)
-            if (
-                fs.existsSync(path.join(resolvedPath, "document")) ||
-                fs.existsSync(path.join(resolvedPath, "bibliography"))
-            ) {
-                continue
-            }
-
-            // Check if this namespace contribution contains the book app
-            if (fs.existsSync(path.join(resolvedPath, "book"))) {
-                return resolvedPath
-            }
-        }
-    } catch {
-        // Python import failed, try fallback
-    }
-
-    // Fallback: try to find fiduswriter-books by looking in parent directories.
-    // Assumes fiduswriter-books and fiduswriter-pandoc-plugin are sibling directories.
-    const pluginDir = path.resolve(__dirname, "..")
-    const pluginParent = path.resolve(pluginDir, "..")
-    const candidate = path.join(
-        pluginParent,
-        "fiduswriter-books",
-        "fiduswriter"
-    )
-    if (
-        fs.existsSync(candidate) &&
-        fs.statSync(candidate).isDirectory() &&
-        fs.existsSync(path.join(candidate, "book"))
-    ) {
-        return candidate
-    }
-
-    // fiduswriter-books is optional
-    return null
-}
-
 function isFile(file) {
     let stat
     try {
@@ -462,10 +394,9 @@ const pluginAppsPaths = getAppsPaths(pluginPath)
 const fidusWriterPath = getFidusWriterPath()
 const fidusWriterAppsPaths = getAppsPaths(fidusWriterPath)
 
-const booksPath = getBooksPath()
-const booksAppsPaths = booksPath ? getAppsPaths(booksPath) : []
-
-const appsPaths = pluginAppsPaths.concat(fidusWriterAppsPaths, booksAppsPaths)
+// The book app ships with Fidus Writer core, so it is already covered by
+// fidusWriterAppsPaths above.
+const appsPaths = pluginAppsPaths.concat(fidusWriterAppsPaths)
 
 const allowedPackages = collectAllowedPackages(appsPaths)
 

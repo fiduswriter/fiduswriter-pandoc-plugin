@@ -407,9 +407,18 @@ class PandocTest(SeleniumHelper, ChannelsLiveServerTestCase):
         self.driver.find_element(
             By.XPATH, '//*[normalize-space()="Other formats"]'
         ).click()
+        # The core editor's export menu has its own top-level "Markdown"
+        # action since @fiduswriter/editor 0.2.39, so the unscoped XPath
+        # matches that item instead of the plugin's "Markdown" submenu under
+        # "Other formats" and closes the menu. Scope the click to the
+        # innermost open pulldown (the "Other formats" submenu).
         self.retry_click(
             self.driver,
-            (By.XPATH, '//*[normalize-space()="Markdown"]'),
+            (
+                By.XPATH,
+                '(//div[contains(@class, "fw-pulldown")])[last()]'
+                '//*[normalize-space()="Markdown"]',
+            ),
         )
 
         self.retry_click(
