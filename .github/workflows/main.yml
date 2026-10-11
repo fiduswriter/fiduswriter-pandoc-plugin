@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-python@v6
         if: github.server_url == 'https://github.com'
         with:
-          python-version: "3.14"
+          python-version: "3.15"
       - name: Install dependencies
         run: |
           pip install pip --upgrade
@@ -43,7 +43,7 @@ jobs:
         uses: actions/setup-python@v6
         if: github.server_url == 'https://github.com'
         with:
-          python-version: "3.14"
+          python-version: "3.15"
       - uses: actions/checkout@v6
       - name: Install dependencies
         run: |
