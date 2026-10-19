@@ -1,4 +1,4 @@
-import {getMissingChapterData} from "@fiduswriter/books-document/exporter/tools"
+import {getMissingChapterData} from "@fiduswriter/books/exporter/tools"
 import {PandocBookExporter} from "@fiduswriter/pandoc/book_exporter"
 import {addProgress, gettext, interpolate} from "fwtoolkit"
 import {createChapterLoader} from "../../modules/books/adapters/chapter-loader"
